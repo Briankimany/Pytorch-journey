@@ -180,7 +180,6 @@ def train(model:torch.nn.Module ,
           test_dataloader: torch.utils.data.DataLoader,
           optim: torch.optim.Optimizer,
           loss_fn :torch.nn.Module,
-          accuracy_fn,
           device = None):
 
   history = {
@@ -197,12 +196,12 @@ def train(model:torch.nn.Module ,
                                         loss_fn = loss_fn,
                                         optimizer = optim,
                                         device = device,
-                                        accuracy_fn = accuracy_fn
+                                        
                                         )
 
     test_loss , test_acc = test_step(model = model,
                                     dataloader = test_dataloader,
-                                    accuracy_fn = accuracy_fn ,
+                                    
                                     loss_fn = loss_fn,
                                     device = device)
 

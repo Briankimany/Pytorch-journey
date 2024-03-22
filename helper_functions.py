@@ -78,6 +78,7 @@ def train_step(model:nn.Module ,
                dataloader:torch.utils.data.DataLoader,
                loss_fn:torch.nn.Module ,
                optimizer : torch.optim.Optimizer,
+               fine_tune= None
               ):
     
   """
@@ -98,14 +99,20 @@ def train_step(model:nn.Module ,
    """
 
   total_correct , total_loss , total_samples= 0 , 0 , 0
-
+  model.train()
+  
   device = "cuda"  if torch.cuda.is_available() else "cpu"
+  if fine_tune:
+    fine_tune = fine_tune.to(device)
+    
   for batch , (X , y)  in enumerate(dataloader):
     X = X.to(device)
     y = y.to(device)
 
-    model.train()
-
+    if fine_tune:
+      with torch.no_grad():
+        X = fine_tune(X)
+      
     y_logits = model(X)
 
     loss = loss_fn(y_logits , y)
@@ -131,7 +138,8 @@ def train_step(model:nn.Module ,
 def test_step(model: nn.Module,           
               dataloader: torch.utils.data.DataLoader,
               loss_fn: torch.nn.Module,
-              device=None):
+              device=None,
+              fine_tune = None):
     
     """
     Perform a single evaluation step.
@@ -159,6 +167,9 @@ def test_step(model: nn.Module,
             X = X.to(device)
             y = y.to(device)
 
+            if fine_tune:
+              X = fine_tune(X)
+              
             y_logits = model(X)
 
             loss = loss_fn(y_logits, y)
@@ -180,7 +191,8 @@ def train(model:torch.nn.Module ,
           test_dataloader: torch.utils.data.DataLoader,
           optim: torch.optim.Optimizer,
           loss_fn :torch.nn.Module,
-          device = None):
+          device = None,
+          fine_tune = None):
 
   history = {
       "train_loss":[],
@@ -196,14 +208,16 @@ def train(model:torch.nn.Module ,
                                         loss_fn = loss_fn,
                                         optimizer = optim,
                                         device = device,
+                                        fine_tune = fine_tune
                                         
                                         )
 
     test_loss , test_acc = test_step(model = model,
                                     dataloader = test_dataloader,
-                                    
                                     loss_fn = loss_fn,
-                                    device = device)
+                                    device = device,
+                                    fine_tune= fine_tune
+                                    )
 
     history['train_loss'].append(train_loss)
     history['test_loss'].append(test_loss)

@@ -3,9 +3,11 @@ import torch
 import matplotlib.pyplot as plt 
 import math , random
 import subprocess
+from copy import deepcopy
 
 from typing import Dict , List
 from torch import nn
+
 
 from sklearn.metrics import classification_report
 from timeit import default_timer as timer
@@ -74,11 +76,17 @@ def plot(data ,  reverse_mapping_dict):
 
   return fig
 
+
+def save_model(model:torch.nn.Module , path):
+  torch.save(model.state_dict() , f = path)
+
+
 def train_step(model:nn.Module ,
                dataloader:torch.utils.data.DataLoader,
                loss_fn:torch.nn.Module ,
                optimizer : torch.optim.Optimizer,
-               fine_tune= None
+               fine_tune= None,
+               device = None
               ):
     
   """
@@ -101,7 +109,9 @@ def train_step(model:nn.Module ,
   total_correct , total_loss , total_samples= 0 , 0 , 0
   model.train()
   
-  device = "cuda"  if torch.cuda.is_available() else "cpu"
+  if device == None:
+    device = "cuda"  if torch.cuda.is_available() else "cpu"
+    
   if fine_tune:
     fine_tune = fine_tune.to(device)
     
@@ -139,7 +149,8 @@ def test_step(model: nn.Module,
               dataloader: torch.utils.data.DataLoader,
               loss_fn: torch.nn.Module,
               device=None,
-              fine_tune = None):
+              fine_tune = None,
+              ):
     
     """
     Perform a single evaluation step.
@@ -192,7 +203,8 @@ def train(model:torch.nn.Module ,
           optim: torch.optim.Optimizer,
           loss_fn :torch.nn.Module,
           device = None,
-          fine_tune = None):
+          fine_tune = None,
+          call_backs = False):
 
   history = {
       "train_loss":[],
@@ -223,6 +235,13 @@ def train(model:torch.nn.Module ,
     history['test_loss'].append(test_loss)
     history['train_acc'].append(train_acc)
     history['test_acc'].append(test_acc)
+    
+    
+    if call_backs:
+      if min(history['test_loss']) == history['test_loss'][-1]:
+        best_model = deepcopy(model)
+        save_model(best_model, 'best_model.pt')
+      
 
     # print("===="* 70)
     info = "{} : Train Loss {:.3f} | Train Accuracy {:.3f} || Test Loss {:.3f} | Test Accuracy {:.3f}".format(epoch ,train_loss , train_acc , test_loss , test_acc)

@@ -25,7 +25,7 @@ def install_package(package_name):
 
 from tqdm.auto import tqdm
 try:
-    from torchmetrics.classification import MulticlassAccuracy , MulticlassAUROC  , MulticlassPrecision , MulticlassF1Score
+    from torchmetrics.classification import MulticlassAccuracy , MulticlassAUROC  , MulticlassPrecision , MulticlassF1Score , MulticlassRecall , MulticlassConfusionMatrix
 except Exception as e:
     print("installing torchmetrics")
     install_package("torchmetrics")
@@ -291,7 +291,7 @@ def plot_loss_curves(results: Dict[str, List[float]]):
     plt.xlabel('Epochs')
     plt.legend();
 
-def eval_model(model:torch.nn.Module ,
+def eval_model(model,
                dataloader : torch.utils.data.DataLoader,
                loss_fn:torch.nn.Module,
                num_classes,
@@ -358,7 +358,7 @@ def eval_model(model:torch.nn.Module ,
         current_loss =  loss_fn(test_pred , y_test)
         loss +=current_loss
 
-        current_accuracy = accuracy_fn(y_test ,test_pred.argmax(dim = 1))
+        current_accuracy = accuracy_fn(test_pred.argmax(dim = 1),y_test)
         accuracy += current_accuracy
 
         auroc = MulticlassAUROC(num_classes)
@@ -426,4 +426,6 @@ def eval_model(model:torch.nn.Module ,
   return None  , average_report
 
 
-
+if __name__ == "__main__":
+  import os 
+  print (os.getcwd())

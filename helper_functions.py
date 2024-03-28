@@ -21,7 +21,7 @@ def install_package(package_name):
         subprocess.check_call(["pip", "install", package_name,'-q'])
         print(f"Package '{package_name}' has been installed successfully.")
     else:
-        print(f"Package '{package_name}' is already installed.")
+        print(f"Package '{package_name}'  is already installed.")
 
 from tqdm.auto import tqdm
 try:
